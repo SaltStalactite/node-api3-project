@@ -1,17 +1,21 @@
 const express = require('express');
 const { validateUserId, validateUser, validatePost } = require('../middleware/middleware')
-// You will need `users-model.js` and `posts-model.js` both
-// The middleware functions also need to be required
+
+const User = require('./users-model')
+const Post = require('../posts/posts-model')
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  // RETURN AN ARRAY WITH ALL THE USERS
+  User.get()
+    .then(users => {
+      res.json(users)
+    })
+    .catch(next)
 });
 
 router.get('/:id', validateUserId, (req, res) => {
-  // RETURN THE USER OBJECT
-  // this needs a middleware to verify user id
+  res.json(req.user)
   console.log(req.user)
 });
 
@@ -47,6 +51,14 @@ router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
   console.log(req.user)
   console.log(req.text)
 });
+
+router.use((err, req, res, next) => {
+  res.status(err.status || 500).json({
+    customMessage: 'massive router error',
+    message: err.message,
+    stack: err.stack
+  })
+})
 
 // do not forget to export the router
 module.exports = router
